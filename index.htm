@@ -1,1 +1,153 @@
-
+<html>
+  <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
+        <script src="https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet"> 
+    <title>scratchdownload</title>
+    <script>
+       var jszip = null;
+  var project = null;
+  var id = null;
+  var soundId = 0;
+  var costumeId = 0;
+  var soundsToDownload = [
+  ];
+  var costumesToDownload = [
+  ];
+  var totalAssets = 0;
+  var completeAssets = 0;
+  function startDownload(projectId) {
+    logMessage('Downloading project: ' + projectId);
+    soundId = 0;
+    costumeId = 0;
+    totalAssets = 0;
+    completeAssets = 0;
+    soundsToDownload = [
+    ];
+    costumesToDownload = [
+    ];
+    id = projectId;
+    jszip = new JSZip();
+    jszip.comment = 'EDX\'s scratchdownload on GitHub.';
+    $.get('https://cdn.projects.scratch.mit.edu/internalapi/project/' + projectId + '/get/', function (data) {
+      logMessage('Loaded JSON');
+      project = data;
+      processSoundsAndCostumes(project);
+      if (project.hasOwnProperty('children')) {
+        for (var child in project.children) {
+          processSoundsAndCostumes(project.children[child]);
+        }
+      }
+      console.log("done");
+      logMessage('Found ' + totalAssets + ' assets');
+      jszip.file('project.json', JSON.stringify(project));
+      downloadCostume();
+    }).fail(perror);
+  }
+  function downloadCostume() {
+    if (costumesToDownload.length > 0) {
+      var current = costumesToDownload.pop();
+      logMessage('Loading asset ' + current.costumeName + ' (' + completeAssets + '/' + totalAssets + ')');
+      JSZipUtils.getBinaryContent('https://cdn.assets.scratch.mit.edu/internalapi/asset/' + current.baseLayerMD5 + '/get/', function (err, data) {
+        if (err) {
+          error();
+          return;
+        }
+        var ext = current.baseLayerMD5.match(/\.[a-zA-Z0-9]+/) [0];
+        jszip.file(current.baseLayerID + ext, data, {
+          binary: true
+        });
+        completeAssets++;
+        downloadCostume();
+      });
+    } else {
+      downloadSound();
+    }
+  }
+  function downloadSound() {
+    if (soundsToDownload.length > 0) {
+      var current = soundsToDownload.pop();
+      logMessage('Loading asset ' + current.soundName + ' (' + completeAssets + '/' + totalAssets + ')');
+      JSZipUtils.getBinaryContent('https://cdn.assets.scratch.mit.edu/internalapi/asset/' + current.md5 + '/get/', function (err, data) {
+        if (err) {
+          perror();
+          return;
+        }
+        var ext = current.md5.match(/\.[a-zA-Z0-9]+/) [0];
+        jszip.file(current.soundID + ext, data, {
+          binary: true
+        });
+        completeAssets++;
+        downloadSound();
+      });
+    } else {
+      logMessage('Loading project title...');
+      $.get('https://scratch.mit.edu/api/v1/project/' + id + '/?format=json', function (data) {
+        logMessage('Generating ZIP...');
+        var content = jszip.generate({
+          type: 'blob'
+        });
+        console.log(content);
+        logMessage('Saving...');
+        try {
+          saveAs(content, data.title + '.sb2');
+        } catch (e) {
+          saveAs(content, 'project.sb2');
+        }
+        logMessage('Complete');
+        psuccess();
+      }).fail(function () {
+        logMessage('Failed to load project title');
+        logMessage('Generating ZIP...');
+        var content = jszip.generate({
+          type: 'blob'
+        });
+        logMessage('Saving...');
+        saveAs(content, 'project.sb2');
+        logMessage('Complete');
+        psuccess();
+      });
+    }
+  }
+  function processSoundsAndCostumes(node) {
+    if (node.hasOwnProperty('costumes')) {
+      for (var i = 0; i < node.costumes.length; i++) {
+        var current = node.costumes[i];
+        current.baseLayerID = costumeId;
+        costumeId++;
+        totalAssets++;
+        costumesToDownload.push(current);
+      }
+    }
+    if (node.hasOwnProperty('sounds')) {
+      for (var i = 0; i < node.sounds.length; i++) {
+        var current = node.sounds[i];
+        current.soundID = soundId;
+        soundId++;
+        totalAssets++;
+        soundsToDownload.push(current);
+      }
+    }
+  }
+  function perror() {
+    logMessage('Download error');
+  }
+  function psuccess() {
+    // yay, done!
+  }
+  function logMessage(msg) {
+    console.log(msg);
+  }
+    </script>
+  </head>
+  <body style="font-family: 'Open Sans', sans-serif;">
+    <center>
+      <h2>scratchdownload</h2>
+      <h4>Download any project, even if it's not shared or has been deleted!</h4>
+      Project ID: <input type="text" id="prjid" value="167786796"><br>
+      <button onclick="startDownload(document.getElementById('prjid').value);">Download it!</button>
+    </center>
+  </body>
+</html>
