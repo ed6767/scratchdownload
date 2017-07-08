@@ -133,21 +133,27 @@
   }
   function perror() {
     logMessage('Download error');
+    $("#opense").fadeIn();
   }
   function psuccess() {
     // yay, done!
+    $("#opense").fadeIn();
   }
   function logMessage(msg) {
     console.log(msg);
+           $("#status1").text(msg);
   }
     </script>
   </head>
   <body style="font-family: 'Open Sans', sans-serif;">
     <center>
-      <h2>scratchdownload</h2>
-      <h4>Download any project, even if it's not shared or has been deleted!</h4>
-      Project ID: <input type="text" id="prjid" value="167786796"><br>
-      <button onclick="startDownload(document.getElementById('prjid').value);">Download it!</button>
+      <h1>scratchdownload</h1>
+      <h2>Download any project, even if it's not shared or has been deleted!</h2>
+      <div id="opense">
+      <h3>Project ID: <input type="text" id="prjid" value="167786796"></h3><br><br>
+      <button onclick="$("#opense").fadeOut();startDownload(document.getElementById('prjid').value);">Download it!</button>
+      </div>
+      <h3 id="statusl"></h3>
     </center>
   </body>
 </html>
