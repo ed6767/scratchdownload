@@ -141,7 +141,7 @@
   }
   function logMessage(msg) {
     console.log(msg);
-   document.getElementById('status1').innerText = msg;
+   document.getElementById("noti").innerText = msg;
   }
     </script>
   </head>
@@ -153,7 +153,7 @@
       <h3>Project ID:<br><input type="text" id="prjid" value="167786796"></h3>
       <button onclick="$('#opense').fadeOut();startDownload(document.getElementById('prjid').value);">Download it!</button>
       </div>
-      <h3 id="statusl"></h3>
+      <h3><div id="noti"></div></h3>
     </center>
   </body>
 </html>
