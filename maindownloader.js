@@ -1,4 +1,10 @@
   // Scratch project downloader by EDX
+// Make sure you include these using script tags in HTML
+// https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js JQuery
+// https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js JZip
+// https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js JZip Utilities
+// https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js File saver
+// Without these it won't work
 // Uses JSZip and stuff
 var jszip = null; // Imported in HTML
   var project = null; 
